@@ -48,7 +48,7 @@ module Scry
       process_node node, node.name, SymbolKind::Function
       true
     end
-    
+
     def visit(node : Crystal::Alias)
       process_node node, node.name, SymbolKind::Constant
       true
