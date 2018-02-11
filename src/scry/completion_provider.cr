@@ -11,7 +11,7 @@ module Scry
     INSTANCE_VARIABLE_REGEX = /(?<var>@[a-zA-Z_]*)$/
     REQUIRE_MODULE_REGEX    = /require\s*\"(?<import>[a-zA-Z\/._]*)$/
 
-    def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position)
+    def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position, @node : Crystal::ASTNode, @graph : Scry::Completion::Graph(String))
     end
 
     def run
@@ -23,7 +23,7 @@ module Scry
       line = @text_document.text.first.lines[@position.line][0..@position.character - 1]
       case line
       when METHOD_CALL_REGEX
-        Completion::MethodCallContext.new($~["target"], $~["method"], line, @text_document)
+        Completion::MethodCallContext.new($~["target"], $~["method"], line, @text_document, @graph, @node)
       when INSTANCE_VARIABLE_REGEX
         Completion::InstanceVariableContext.new($~["var"], line, @text_document)
       when REQUIRE_MODULE_REGEX

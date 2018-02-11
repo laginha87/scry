@@ -21,7 +21,7 @@ module Scry
 
     def run
       @workspace.max_number_of_problems = customizations.max_number_of_problems
-      Log.logger.level = log_level(customizations.log_level || "error")
+      # Log.logger.level = log_level(customizations.log_level || "error")
       {@workspace, nil}
     end
 

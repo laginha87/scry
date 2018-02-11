@@ -1,3 +1,5 @@
+require "./completion/test"
+
 module Scry
   class CompletionResolver
     def initialize(@id : Int32, @completionItem : CompletionItem)

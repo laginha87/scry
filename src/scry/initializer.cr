@@ -15,6 +15,7 @@ module Scry
     end
 
     def run
+      @workspace.process_requires
       {@workspace, response}
     end
 
