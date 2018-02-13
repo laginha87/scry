@@ -30,9 +30,8 @@ module Scry
       results = completion_provider.run
 
       labels = results.map &.label
-
-      results.size.should eq(1)
-      labels.should eq(["sample"])
+      results.size.should eq(3)
+      labels.sort.should eq(["sample", "sample_3", "sample_2"].sort)
     end
   end
 end

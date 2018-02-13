@@ -7,29 +7,35 @@ module Scry
   end
 
   class CompletionProvider
-    METHOD_CALL_REGEX       = /(?<target>[a-zA-Z][a-zA-Z_:]*)\.(?<method>[a-zA-Z]*[a-zA-Z_:]*)$/
+    METHOD_CALL_REGEX       = /(?<target>[a-zA-Z][a-zA-Z_:]*)\s*\.\s*(?<method>[a-zA-Z]*[a-zA-Z_:]*)$/
     INSTANCE_VARIABLE_REGEX = /(?<var>@[a-zA-Z_]*)$/
     REQUIRE_MODULE_REGEX    = /require\s*\"(?<import>[a-zA-Z\/._]*)$/
 
-    def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position, @node : Crystal::ASTNode, @graph : Scry::Completion::Graph(String))
+    def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position, @method_db : Completion::MethodDB, @graph : Completion::Graph(String))
     end
+    # def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position)
+    #   @method_db = nil
+    #   @graph = Scry::Completion::Graph(String).new
+    # end
 
     def run
-      context = parse_context
-      context.find
+      parse_context.find
     end
 
     def parse_context
-      line = @text_document.text.first.lines[@position.line][0..@position.character - 1]
-      case line
+      # start_index =  @position.line > 10 ? (@position.line-10) % @position.line : 0
+      lines = @text_document.text.first.lines[0..@position.line]
+      lines[-1] = lines.last[0..@position.character - 1]
+      lines = lines.join(" ")
+      case lines
       when METHOD_CALL_REGEX
-        Completion::MethodCallContext.new($~["target"], $~["method"], line, @text_document, @graph, @node)
+        Completion::MethodCallContext.new(lines, $~["target"], $~["method"], @method_db)
       when INSTANCE_VARIABLE_REGEX
-        Completion::InstanceVariableContext.new($~["var"], line, @text_document)
+        Completion::InstanceVariableContext.new($~["var"], lines, @text_document)
       when REQUIRE_MODULE_REGEX
         Completion::RequireModuleContext.new($~["import"], @text_document)
       else
-        raise UnrecognizedContext.new("Couldn't identify context of: #{line}")
+        raise UnrecognizedContext.new("Couldn't identify context of: #{lines}")
       end
     end
   end

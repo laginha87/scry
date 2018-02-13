@@ -55,8 +55,8 @@ module Scry
         Log.logger.debug(response)
         response
       when "textDocument/completion"
-        text_document, node = @workspace.get_file(params.text_document)
-        completion = CompletionProvider.new(text_document, params.context, params.position, node, @workspace.graph.as(Scry::Completion::Graph(String)))
+        text_document, method_db = @workspace.get_file(params.text_document)
+        completion = CompletionProvider.new(text_document, params.context, params.position, method_db, @workspace.graph.not_nil!)
         results = completion.run
         response = ResponseMessage.new(msg.id, results)
         Log.logger.debug(response)

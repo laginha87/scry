@@ -40,13 +40,18 @@ module Scry::Completion
       @nodes[node_1].children << @nodes[node_2]
     end
 
-    def get(node : T) : Node(T) | Nil
+    def []?(node : T) : Node(T) | Nil
       @nodes.has_key?(node) ? @nodes[node] : nil
+    end
+
+    def [](node : T) : Node(T)
+      @nodes[node]
     end
   end
 
   class Builder
     def initialize(@lookup_paths : Array(String))
+      Log.logger.debug("Looking into: #{@lookup_paths.join ", "}")
     end
 
     def build
@@ -58,48 +63,55 @@ module Scry::Completion
           get_requires d, graph
         end
       end
-      graph.nodes.each do |_, n|
-        Log.logger.debug("Node: ")
-        Log.logger.debug(n.node)
-        Log.logger.debug("Descendants: ")
-        Log.logger.debug n.descendants.map(&.node).join("\n    ")
-      end
 
+      prelude_path = graph.nodes.keys.find { |e| e.ends_with?("src/prelude.cr") }.as(String)
+      graph.nodes.keys.each { |n| graph.add_edge(n, prelude_path) unless n.ends_with?("src/prelude.cr") }
+      Log.logger.debug "Finished Building for the following keys: #{graph.nodes.keys.join "\n"}"
       graph
     end
 
     def get_requires(file, graph)
       file_dir = File.dirname(file)
-      file_path = File.expand_path(file).chomp(".cr")
+      current_file_path = File.expand_path(file)
+
+      requires_so_far = [] of String
 
       File.each_line(file)
           .map { |line| /^\s*require\s*\"(?<file>.*)\"\s*$/.match(line) }
           .reject(&.nil?)
           .map { |e| e.as(Regex::MatchData)["file"] }
-          .each do |m|
-        path = resolve_path(m, file_dir)
-        if !path
-          Log.logger.debug "#{m} Not Found"
-        elsif path.ends_with?("*")
+          .each do |required_file|
+            required_file_path = resolve_path(required_file, file_dir)
+        if !required_file_path
+          Log.logger.debug "#{required_file} Not Found on dir #{file_dir} with resolved path #{required_file_path}"
+        elsif required_file_path.ends_with?("*")
           acc = [] of String
-          Dir.glob(path).each do |_p|
-            p = File.expand_path(_p).chomp(".cr")
-            graph.add_edge(file_path, p)
-            acc.each do |pp|
+          Dir.glob(required_file_path).each do |p|
+            graph.add_edge(current_file_path, p)
+            requires_so_far.each do |pp|
               graph.add_edge(pp, p)
             end
-            acc << p
+            requires_so_far << p
           end
         else
-          graph.add_edge(file_path, path)
+          Log.logger.debug("ADding the edge #{current_file_path}")
+          graph.add_edge(current_file_path, required_file_path)
+          requires_so_far.each do |path|
+            graph.add_edge(required_file_path, path)
+          end
+          requires_so_far << required_file_path
         end
       end
     end
 
+    # private def expand_path(path)
+    #   path.ends_with?(".cr") ? File.expand_path(path) : "#{File.expand_path(path)}.cr"
+    # end
+
     def resolve_path(mod, dir)
-      return File.expand_path(mod, dir) if mod.starts_with?(".")
+      return File.expand_path(mod, dir) + ".cr" if mod.starts_with?(".")
       @lookup_paths.each do |e|
-        path = File.expand_path(mod, e)
+        path = File.expand_path(mod, e) + ".cr"
         return path if File.exists?(path)
       end
     end
