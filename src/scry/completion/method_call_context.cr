@@ -49,7 +49,7 @@ module Scry::Completion
 
     private def to_completion_items(results : Array(String))
       results.map do |res|
-        CompletionItem.new(res, CompletionItemKind::Method, res, nil)
+        CompletionItem.new(res, get_kind(res), res, nil)
       end
     end
 
@@ -63,6 +63,18 @@ module Scry::Completion
 
     private def in_file_method_declaration_regexp
       /def\s*#{@target}\(.*\)\s*:\s*(?<type>#{TYPE_REGEXP})/
+    end
+
+    private def get_kind(label : String)
+      return CompletionItemKind::Folder
+      case label
+      when .starts_with?(".new")
+        CompletionItemKind::Constructor
+      when .starts_with?(".")
+        CompletionItemKind::Method
+      else
+        CompletionItemKind::Function
+      end
     end
   end
 end

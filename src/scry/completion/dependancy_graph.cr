@@ -84,7 +84,7 @@ module Scry::Completion
             required_file_path = resolve_path(required_file, file_dir)
         if !required_file_path
           Log.logger.debug "#{required_file} Not Found on dir #{file_dir} with resolved path #{required_file_path}"
-        elsif required_file_path.ends_with?("*")
+        elsif required_file_path.ends_with?("*.cr")
           acc = [] of String
           Dir.glob(required_file_path).each do |p|
             graph.add_edge(current_file_path, p)
