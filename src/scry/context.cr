@@ -127,11 +127,8 @@ module Scry
     end
 
     private def dispatchNotification(params : DidChangeTextDocumentParams, msg)
-      @workspace.put_file(params)
-      text_document = TextDocument.new(params)
-      analyzer = ParseAnalyzer.new(@workspace, text_document)
-      response = analyzer.run
-      response
+      @workspace.update_file(params)
+      nil
     end
 
     private def dispatchNotification(params : DidChangeWatchedFilesParams, msg)
@@ -142,7 +139,6 @@ module Scry
 
     private def handle_file_event(file_event : FileEvent)
       text_document = TextDocument.new(file_event)
-
       case file_event.type
       when FileEventType::Created
         analyzer = Analyzer.new(@workspace, text_document)
@@ -159,6 +155,7 @@ module Scry
 
     private def dispatchNotification(params : Trace, msg)
       nil
+
     end
 
     # Used by:

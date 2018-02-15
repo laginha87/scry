@@ -23,13 +23,13 @@ module Scry
     end
 
     def parse_context
-      # start_index =  @position.line > 10 ? (@position.line-10) % @position.line : 0
-      lines = @text_document.text.first.lines[0..@position.line]
+      start_index =  @position.line > 10 ? (@position.line-10) : 0
+      lines = @text_document.source.lines[0..@position.line]
       lines[-1] = lines.last[0..@position.character - 1]
       lines = lines.join(" ")
       case lines
       when METHOD_CALL_REGEX
-        Completion::MethodCallContext.new(lines, $~["target"], $~["method"], @method_db)
+        Completion::MethodCallContext.new(@text_document.source, $~["target"], $~["method"], @method_db)
       when INSTANCE_VARIABLE_REGEX
         Completion::InstanceVariableContext.new($~["var"], lines, @text_document)
       when REQUIRE_MODULE_REGEX

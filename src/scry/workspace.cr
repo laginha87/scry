@@ -28,6 +28,12 @@ module Scry
       @open_files[file.filename] = {file, node}
     end
 
+    def update_file(params : DidOpenTextDocumentParams | DidChangeTextDocumentParams)
+      file = TextDocument.new(params)
+      _, node = @open_files[file.filename]
+      @open_files[file.filename] = {file, node}
+    end
+
     def drop_file(params : TextDocumentParams)
       filename = TextDocument.uri_to_filename(params.text_document.uri)
       @open_files.delete(filename)

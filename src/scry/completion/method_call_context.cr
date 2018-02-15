@@ -58,7 +58,8 @@ module Scry::Completion
     end
 
     private def declaration_regexp
-      /#{@target}\s*:\s*(?<type>#{TYPE_REGEXP})/
+      target_name = @target.starts_with?("@") ? @target[1..-1] : @target
+      /#{target_name}\s*:\s*(?<type>#{TYPE_REGEXP})/
     end
 
     private def in_file_method_declaration_regexp

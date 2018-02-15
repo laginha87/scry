@@ -1,32 +1,6 @@
 require "compiler/crystal/syntax"
 
 module Scry::Completion
-  class Trie(T)
-    children : Hash(Char, Array(Trie(T)))
-    node : T?
-
-    def initialize()
-      @children = Hash(Char, Array(Trie(T))).new
-    end
-
-    def add(method_path : String, entry : T)
-      method_path
-        .to_a
-        .each_with_index
-        .reduce(self)do |acc, re|
-          self[re]?
-      end
-    end
-
-    # def find(method_path : String)
-    #   node = method_path.to_a.reduce(self).do |acc, b|
-    #     break unless acc
-    #     acc[b]
-    #   end
-    #   node.node_and_descendants.first(50).to_a
-    # end
-  end
-
   class MethodDB
     property db : Hash(String, Array(String))
     def initialize
@@ -46,8 +20,7 @@ module Scry::Completion
           [] of String
         end
       end
-      .select(&.starts_with? text)
-      .first(5)
+      .grep(/^#{text}/)
       .to_a
     end
 
