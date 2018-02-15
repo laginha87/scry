@@ -53,7 +53,19 @@ module Scry
     end
   end
 
-  alias CompletionItemData = RequireModuleContextData
+  struct MethodCompletionContextData
+    JSON.mapping({
+      path: String,
+      location: String?,
+      method_completion_context: Bool
+    })
+    def initialize(@path, @location)
+      @method_completion_context = true
+    end
+
+  end
+
+  alias CompletionItemData = RequireModuleContextData | MethodCompletionContextData
 
   struct CompletionItem
     JSON.mapping({

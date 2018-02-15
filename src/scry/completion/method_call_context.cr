@@ -9,7 +9,7 @@ module Scry::Completion
 
     def find
       t = get_type
-      res = t ? @db.matches([t], @method) : [] of String
+      res = t ? @db.matches([t], @method) : [] of MethodDbEntry
       to_completion_items res
     end
 
@@ -47,9 +47,11 @@ module Scry::Completion
       #   end
     end
 
-    private def to_completion_items(results : Array(String))
+    private def to_completion_items(results : Array(MethodDbEntry))
+
       results.map do |res|
-        CompletionItem.new(res, get_kind(res), res, nil)
+
+        CompletionItem.new(res.name, get_kind(res.name), "#{res.name}(#{res.signature})" ,MethodCompletionContextData.new(res.file, res.location))
       end
     end
 
