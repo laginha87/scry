@@ -16,7 +16,7 @@ module Scry::Completion
             json_path = File.expand_path("json" , Crystal::CrystalPath.default_path.split(":").grep(/crystal/).first.as(String))
             prelude_path = File.expand_path("prelude" , Crystal::CrystalPath.default_path.split(":").grep(/crystal/).first.as(String))
             tree_path = File.expand_path("tree" , root)
-
+            puts graph.nodes.map &.[0]
             node = graph[sample_2_path]
             children(node).should eq([sample_3_path, prelude_path].sort)
 

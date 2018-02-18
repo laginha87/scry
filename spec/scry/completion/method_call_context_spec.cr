@@ -4,10 +4,11 @@ require "compiler/crystal/syntax"
 
 module Scry::Completion
   describe MethodCallContext do
+
     it "finds on int" do
 
       db = MethodDB.new({
-        "Int32" => ["to_s", "to_json", "t_a", "+"]
+        "Int32" => ["to_s", "to_json", "t_a", "+"].map {|e| MethodDbEntry.new(e, "MOCK FILE", Crystal::Def.new(e))}
       })
 
       code_sample_1 = "

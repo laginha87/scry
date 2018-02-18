@@ -3,11 +3,15 @@ require "compiler/crystal/syntax"
 module Scry::Completion
   class MethodDB
     property db : Hash(String, Array(MethodDbEntry))
+    property classes : Graph(String)
+
     def initialize
       @db = Hash(String, Array(MethodDbEntry)).new
+      @classes = Graph(String).new
     end
 
     def initialize(@db)
+      @classes = Graph(String).new
     end
 
     def matches(types : Array(String), text : String) : Array(MethodDbEntry)
@@ -52,8 +56,8 @@ module Scry::Completion
     property signature : String
 
     def initialize(@name, @file, node : Crystal::Def)
-      @signature = node.to_s.partition("\n").first
-      @location = node.location.to_s if location
+      @signature = "(#{node.args.map(&.to_s).join(", ")}) : #{node.return_type.to_s}"
+      @location = node.location.to_s if node.location
     end
 
     def_equals_and_hash name
@@ -84,13 +88,20 @@ module Scry::Completion
 
     def visit(node : Crystal::ClassDef)
       @classes[node.name.to_s] = [] of MethodDbEntry
+      @classes["#{node.name.to_s}.class"] = [] of MethodDbEntry
       @class_queue << node.name.to_s
       true
     end
 
     def visit(node : Crystal::Def)
-      return false if @class_queue.size == 0
-      @classes[@class_queue.last] << build_entry(node) if node.visibility == Crystal::Visibility::Public
+      return false if @class_queue.size == 0 || node.visibility != Crystal::Visibility::Public
+      if node.name == "initialize"
+        @classes["#{@class_queue.last}.class"] << MethodDbEntry.new("new", @file, node)
+      elsif node.receiver
+        @classes["#{@class_queue.last}.class"] << MethodDbEntry.new(node.name, @file, node)
+      else
+        @classes[@class_queue.last] << MethodDbEntry.new(node.name, @file, node)
+      end
       false
     end
 
@@ -101,12 +112,6 @@ module Scry::Completion
 
     def end_visit(node : Crystal::ClassDef)
       @class_queue.pop
-    end
-
-    def build_entry(node : Crystal::Def)
-      func_sep = (node.receiver ? "." : "#") # If has receiver its class method
-      func = node.name == "initialize" ? ".new" : "#{func_sep}#{node.name}"
-      MethodDbEntry.new(func, @file, node)
     end
 
     def visit(node)

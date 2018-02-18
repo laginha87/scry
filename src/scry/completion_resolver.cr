@@ -10,10 +10,14 @@ module Scry
         file = File.new data.path
         doc = file.each_line.first(5).join("\n")
         @completionItem.documentation = MarkupContent.new("markdown", "```crystal\n#{doc}\n```")
-        @completionItem
-      else
-        @completionItem
+      when MethodCompletionContextData
+        file = File.new data.path
+
+        line = data.location.not_nil!.split(":")[1].to_i
+        lines = file.each_line.first(line-1).to_a.reverse.take_while(&.match /^\s*#/).map{|e| e.gsub(/^\s*#/, "") }.reverse.join("\n")
+        @completionItem.documentation =  MarkupContent.new("markdown",  lines)
       end
+      @completionItem
     end
   end
 end

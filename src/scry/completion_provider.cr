@@ -13,17 +13,22 @@ module Scry
 
     def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position, @method_db : Completion::MethodDB, @graph : Completion::Graph(String))
     end
+
     # def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position)
     #   @method_db = nil
     #   @graph = Scry::Completion::Graph(String).new
     # end
+    def initialize(@text_document : TextDocument, @context : CompletionContext | Nil, @position : Position)
+      @method_db = Completion::MethodDB.new
+      @graph = Completion::Graph(String).new
+    end
 
     def run
       parse_context.find
     end
 
     def parse_context
-      start_index =  @position.line > 10 ? (@position.line-10) : 0
+      start_index = @position.line > 10 ? (@position.line - 10) : 0
       lines = @text_document.source.lines[0..@position.line]
       lines[-1] = lines.last[0..@position.character - 1]
       lines = lines.join(" ")

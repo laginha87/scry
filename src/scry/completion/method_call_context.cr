@@ -25,21 +25,20 @@ module Scry::Completion
         end
       when assign_regexp, declaration_regexp, in_file_method_declaration_regexp
         $~["type"]
-      # when /#{@target} = #{FUNC_CALL_REGEXP}/ TODO
+        # when /#{@target} = #{FUNC_CALL_REGEXP}/ TODO
 
-      #     pattern = "#{m["class"]}.#{m["method"]}"
-      #     res = db.match pattern
-      #     if res.size == 1 && (entry = res.first) &&
-      #         (m = entry.signature.match /:\s?(#{TYPE_REGEXP})(?:\(.+\))?\s*$/)
-      #         return m[1]
-      #     else
-      #         Server.logger.debug "Fail to get the return type of function call : #{m}"
-      #     end
+        #     pattern = "#{m["class"]}.#{m["method"]}"
+        #     res = db.match pattern
+        #     if res.size == 1 && (entry = res.first) &&
+        #         (m = entry.signature.match /:\s?(#{TYPE_REGEXP})(?:\(.+\))?\s*$/)
+        #         return m[1]
+        #     else
+        #         Server.logger.debug "Fail to get the return type of function call : #{m}"
+        #     end
       else
-          # Log.logger.debug "Can't find the type of \"#{@target}\""
-          nil
+        # Log.logger.debug "Can't find the type of \"#{@target}\""
+        nil
       end
-
 
       #
       #     Server.logger.debug "Can't find the type of \"#{@splitted.first}\""
@@ -48,10 +47,8 @@ module Scry::Completion
     end
 
     private def to_completion_items(results : Array(MethodDbEntry))
-
       results.map do |res|
-
-        CompletionItem.new(res.name, get_kind(res.name), "#{res.name}(#{res.signature})" ,MethodCompletionContextData.new(res.file, res.location))
+        CompletionItem.new(res.name, get_kind(res.name), "#{res.name}#{res.signature}", MethodCompletionContextData.new(res.file, res.location))
       end
     end
 
@@ -69,7 +66,6 @@ module Scry::Completion
     end
 
     private def get_kind(label : String)
-      return CompletionItemKind::Folder
       case label
       when .starts_with?(".new")
         CompletionItemKind::Constructor
