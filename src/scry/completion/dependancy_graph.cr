@@ -25,19 +25,26 @@ module Scry::Completion
 
   class Graph(T)
     property nodes
+    property root_node
 
     def initialize
       @nodes = {} of T => Node(T)
+      @root_node =Set(Node(T)).new
     end
 
-    def add(node : T)
-      @nodes[node] = Node.new node
+    def add(value : T)
+      @nodes[value] = Node.new value
     end
 
-    def add_edge(node_1 : T, node_2 : T)
-      add(node_1) unless @nodes.has_key?(node_1)
-      add(node_2) unless @nodes.has_key?(node_2)
-      @nodes[node_1].children << @nodes[node_2]
+    def add_edge(value_1 : T, value_2 : T)
+      if @nodes.has_key?(value_1)
+        @root_node.delete @nodes[value_1]
+      else
+        add value_1
+        @root_node << @nodes[value_1]
+      end
+      add(value_2) unless @nodes.has_key?(value_2)
+      @nodes[value_1].children << @nodes[value_2]
     end
 
     def []?(node : T) : Node(T) | Nil

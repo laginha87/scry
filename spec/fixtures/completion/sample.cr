@@ -10,3 +10,12 @@ class A
   def self.class_method
   end
 end
+
+
+struct B
+  def struct_method_a
+  end
+
+  def self.struct_class_method
+  end
+end

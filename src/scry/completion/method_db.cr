@@ -45,6 +45,10 @@ module Scry::Completion
             db.db.merge!(visitor.classes) do |k, old_val, new_val|
               old_val + new_val
             end
+            visitor.supers.each do |klass, super_klass, namespaced|
+              db.classes.add_edge(klass, super_klass)
+            end
+            queue = db.db.root_node
         end
         db
     end
@@ -64,9 +68,12 @@ module Scry::Completion
   end
   class Generator < Crystal::Visitor
     property classes
+    property supers
     def initialize(@file : String)
       @classes   =  {} of String => Array(MethodDbEntry)
+      @supers = [] of Tuple(String, String, Bool)
       @class_queue = [] of String
+      @modules = [] of String
     end
 
     # def visit(node : Crystal::ModuleDef)
@@ -83,6 +90,7 @@ module Scry::Completion
     #   true
     # end
     def visit(node : Crystal::ModuleDef)
+      @modules << node.name.to_s
       true
     end
 
@@ -90,6 +98,28 @@ module Scry::Completion
       @classes[node.name.to_s] = [] of MethodDbEntry
       @classes["#{node.name.to_s}.class"] = [] of MethodDbEntry
       @class_queue << node.name.to_s
+
+      if @modules.empty?
+        name = node.name.to_s
+        namespaced = false
+      else
+        prefix = @modules.join("::")
+        name = "#{prefix}::#{node.name.to_s}"
+        namespaced = true
+      end
+
+      case node
+      when .superclass
+        super_class_name = node.superclass.not_nil!.to_s
+        super_class_name = @modules.empty? ? super_class_name : "#{prefix}::#{super_class_name}"
+      when .struct?
+        super_class_name = "Value"
+      else
+        super_class_name= "Reference"
+      end
+
+      @supers << {name,  super_class_name, namespaced}
+
       true
     end
 
@@ -112,6 +142,10 @@ module Scry::Completion
 
     def end_visit(node : Crystal::ClassDef)
       @class_queue.pop
+    end
+
+    def end_visit(node : Crystal::ModuleDef)
+      @modules.pop
     end
 
     def visit(node)
