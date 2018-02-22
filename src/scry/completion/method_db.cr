@@ -48,7 +48,8 @@ module Scry::Completion
             visitor.supers.each do |klass, super_klass, namespaced|
               db.classes.add_edge(klass, super_klass)
             end
-            queue = db.db.root_node
+            queue = db.classes.root_node
+
         end
         db
     end
