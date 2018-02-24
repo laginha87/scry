@@ -22,7 +22,7 @@ module Scry
 
     it "handles require module completions for relative path" do
       tree_path = File.expand_path("spec/fixtures/completion/tree.cr")
-      text_content = "require \"./"
+      text_content = "require \"./sa"
       text_document = TextDocument.new(tree_path, [text_content])
       position = Position.new(line = 0, character = text_content.size)
       completion_provider = CompletionProvider.new(text_document, context: nil, position: position)
